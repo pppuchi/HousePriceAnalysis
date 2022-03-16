@@ -1,0 +1,50 @@
+1.Preprocessing 数据预处理
+import pandas as pd
+import numpy as mp
+import matplotlib.pyplot as plt
+%matplotlib inline  #直接显示图片display the plot in the same window
+
+1.1 Read data #创建一个空列表，for循环读取多个文件，加入列表 a empty list, use for to read data and add into list
+data_list=[]
+for i in range(1,8):
+  try:
+    data=pd.read_csv('./lianjia{}.csv'.format(i),encoding='gbk')
+  except:
+    data=pd.read_csv('./lianjia{}.csv'.format(i),encoding='gbk'/'UTF-8')
+  data_list.append(data)
+
+1.2 Data concatenate 数据合并
+data=pd.concat(data_list)
+data.info()
+data.describe()
+
+1.3 Extract data 取值
+data=data[['price','location','floor','RoadName']]
+
+1.4 Missing value 缺失值
+(data.isnull()).sum() 查找缺失值总数
+data[data.price.isnull()] 为缺失值的栏
+data.dropna(how ='all',inplace=true) 去掉缺失值
+
+1.5 Duplicate 重复值
+data.drop_duplicates() 删除缺失值
+
+(data.duplicated()).sum() 返回重复值总数
+(data.duplicated(subset=['price','location','floor'])).sum() 返回特定列重复值总数
+前三列相同但最后一列为空和非空的情况下，则不相同，则不会被处理，造成遗漏
+正确做法应该为先sort（为了把空值放在最后，因为drop_duplicates会优先drop掉后面的重复值),然后再用drop_duplicates().
+
+data.sort_values(by='RoadName',inplace=true)
+data=data.drop_duplicates(subset=['price','location','floor'])
+
+1.6 AsType 转换类型
+(~data.price.str.contains('元/平')).sum()
+data=data.price.map(lambda x:round(float(x.replace('元/平',''))/10000,2) 运用函数会造成速度下降
+data=data.assign(price=np.round(data.price.str.replace(('元/平','').astype(np.float32).map(lambda x:x/10000),2)) 用向量化方法使运算速度更快
+
+1.7 remove unusual values 去除异常值
+data=data[data.price>0.5]
+
+1.8 bins 分级
+bins=[0,1,2,3,4,5,7,10,15]
+pd.cut(data.price,bins).value_counts().plot.bar(rot=20)
